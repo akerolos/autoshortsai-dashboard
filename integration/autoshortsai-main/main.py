@@ -1,10 +1,17 @@
 """
 =========================================
 Project : AutoShortsAI
-File    : main.py (مُعدّل)
+File    : main.py (نسخة بسيطة للـ static dashboard)
 =========================================
-تم إضافة تكامل مع Dashboard Reporter.
-التعديلات مميزة بـ: [DASHBOARD INTEGRATION]
+
+الـ dashboard دلوقتي بيقرأ من قاعدة البيانات مباشرة (videos.db)
+مش محتاج reporter منفصل — كل اللي عليك إن main.py يشتغل صح
+والـ DB هتتبعت تلقائياً للـ dashboard repo عبر daily_run.yml.
+
+التعديلات اللي في النسخة دي:
+- بسيطة جداً — بتسجّل الـ stages في الـ DB بتاعتك
+- مش محتاج API key ولا connection للـ dashboard
+- كل اللي بيتعمل: تحديث videos.db (اللي أصلاً بيعملها)
 """
 
 import config
@@ -24,153 +31,215 @@ from video.subtitle_engine import SubtitleEngine
 from quality.quality_checker import QualityChecker
 from youtube.uploader import YouTubeUploader
 
-# [DASHBOARD INTEGRATION] استيراد الـ reporter
-from dashboard import get_reporter
-
 import time
 import os
+import json
+import sqlite3
 import traceback
+from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
 MAX_RETRIES = 3
 
 
-def run_pipeline(video_index: int):
-    """
-    Executes the full pipeline for a single video.
-    """
-    # [DASHBOARD INTEGRATION] الحصول على الـ reporter
-    reporter = get_reporter()
+def log_stage_to_db(stage_key, stage_name, status, started_at=None, finished_at=None,
+                    execution_time=None, message=None, error_message=None):
+    """يسجّل حالة المرحلة في DB بسيطة (pipeline_logs.db).
 
+    الـ DB دي منفصلة عن videos.db ومش هتتدخل في حاجة عندك.
+    """
+    try:
+        conn = sqlite3.connect("pipeline_logs.db")
+        cursor = conn.cursor()
+
+        # إنشاء الجدول لو مش موجود
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS stages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_uid TEXT,
+                stage_key TEXT,
+                stage_name TEXT,
+                status TEXT,
+                started_at TEXT,
+                finished_at TEXT,
+                execution_time_seconds REAL,
+                message TEXT,
+                error_message TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        run_uid = os.getenv("GITHUB_RUN_ID", f"local-{int(time.time())}")
+
+        cursor.execute("""
+            INSERT INTO stages (run_uid, stage_key, stage_name, status,
+                              started_at, finished_at, execution_time_seconds,
+                              message, error_message)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (run_uid, stage_key, stage_name, status,
+              started_at, finished_at, execution_time,
+              message, error_message))
+
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logger.warning(f"Could not log stage to DB: {e}")
+
+
+def log_pipeline_run_to_db(status, started_at, finished_at, execution_time,
+                          target_videos, completed_videos, failed_videos, error_message=None):
+    """يسجّل حالة الـ run الكامل."""
+    try:
+        conn = sqlite3.connect("pipeline_logs.db")
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS pipeline_runs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_uid TEXT UNIQUE,
+                status TEXT,
+                started_at TEXT,
+                finished_at TEXT,
+                execution_time_seconds REAL,
+                target_videos INTEGER,
+                completed_videos INTEGER,
+                failed_videos INTEGER,
+                error_message TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        run_uid = os.getenv("GITHUB_RUN_ID", f"local-{int(time.time())}")
+
+        cursor.execute("""
+            INSERT OR REPLACE INTO pipeline_runs
+            (run_uid, status, started_at, finished_at, execution_time_seconds,
+             target_videos, completed_videos, failed_videos, error_message)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (run_uid, status, started_at, finished_at, execution_time,
+              target_videos, completed_videos, failed_videos, error_message))
+
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        logger.warning(f"Could not log pipeline run to DB: {e}")
+
+
+def run_pipeline(video_index: int):
+    """ينفّذ الـ pipeline الكامل لفيديو واحد."""
     logger.info(f"=========================================")
     logger.info(f"Starting Video #{video_index + 1} Pipeline")
     logger.info(f"=========================================")
 
     FileManager.create_project_folders()
 
-    # Initialize Main Database
     db = Database()
     db.create_tables()
     banned_ideas = db.get_recent_ideas(limit=10)
 
-    # 1. Brain: Content Generation
-    # [DASHBOARD INTEGRATION] تسجيل بداية مرحلة content_engine
-    reporter.stage_start("content_engine", "Content Engine", current_task="Generating content ideas")
+    # 1. Content Generation
+    stage_start = time.time()
+    log_stage_to_db("content_engine", "Content Engine", "running",
+                    started_at=datetime.now().isoformat())
     try:
         categories = config.CATEGORIES
         topic = categories[video_index % len(categories)]
         logger.info(f"Selected Category: {topic}")
 
         engine = ContentEngine()
-        content, embedding, idea_status = engine.generate_unique_content(
-            topic, banned_ideas
-        )
+        content, embedding, idea_status = engine.generate_unique_content(topic, banned_ideas)
 
         if not content:
             logger.error("Engine failed to generate content. Skipping.")
-            reporter.stage_end("content_engine", status="failed",
-                              error_message="Engine failed to generate content")
-            reporter.add_log("ERROR", "content_engine", "Content generation failed")
+            log_stage_to_db("content_engine", "Content Engine", "failed",
+                          started_at=datetime.now().isoformat(),
+                          finished_at=datetime.now().isoformat(),
+                          execution_time=time.time() - stage_start,
+                          error_message="Engine failed to generate content")
             db.close()
             return False
 
-        reporter.stage_end("content_engine", status="completed",
-                          message=f"Generated content: {content.title[:50]}")
-        reporter.add_log("SUCCESS", "content_engine",
-                        f"Content generated successfully for category: {topic}")
+        log_stage_to_db("content_engine", "Content Engine", "completed",
+                        started_at=datetime.now().isoformat(),
+                        finished_at=datetime.now().isoformat(),
+                        execution_time=time.time() - stage_start,
+                        message=f"Generated: {content.title[:50]}")
     except Exception as e:
-        reporter.stage_end("content_engine", status="failed", error_message=str(e))
-        reporter.add_log("ERROR", "content_engine", f"Exception: {str(e)}")
-        logger.error(f"Content engine failed: {e}")
+        log_stage_to_db("content_engine", "Content Engine", "failed",
+                        execution_time=time.time() - stage_start,
+                        error_message=str(e))
         db.close()
         return False
 
-    # 2. Parallel Processing: Generate Voice & Download Images simultaneously
+    # 2. Parallel: Voice + Images
     logger.info("Starting Parallel Processing (Voice + Images)...")
-    # [DASHBOARD INTEGRATION] تسجيل بداية image_engine و narrator
-    reporter.stage_start("image_engine", "Image Engine", current_task="Downloading images from Pexels")
-    reporter.stage_start("narrator", "Narrator", current_task="Generating voice with TTS")
+    voice_start = time.time()
+    log_stage_to_db("image_engine", "Image Engine", "running")
+    log_stage_to_db("narrator", "Narrator", "running")
 
     try:
         with ThreadPoolExecutor(max_workers=2) as executor:
             voice_future = executor.submit(NarratorEngine().generate, content, topic)
-            images_future = executor.submit(
-                ImageDownloader().download_all, content.image_keywords
-            )
-
+            images_future = executor.submit(ImageDownloader().download_all, content.image_keywords)
             voice = voice_future.result()
             images = images_future.result()
 
-        reporter.stage_end("image_engine", status="completed",
-                          message=f"Downloaded {len(images) if images else 0} images")
-        reporter.stage_end("narrator", status="completed",
-                          message=f"Voice generated: {voice.audio_path}")
-        reporter.add_log("SUCCESS", "image_engine", "Image download completed")
-        reporter.add_log("SUCCESS", "narrator", "Voice generation completed")
+        log_stage_to_db("image_engine", "Image Engine", "completed",
+                        execution_time=time.time() - voice_start)
+        log_stage_to_db("narrator", "Narrator", "completed",
+                        execution_time=time.time() - voice_start)
     except Exception as e:
-        reporter.stage_end("image_engine", status="failed", error_message=str(e))
-        reporter.stage_end("narrator", status="failed", error_message=str(e))
-        reporter.add_log("ERROR", "parallel", f"Parallel processing failed: {str(e)}")
-        logger.error(f"Parallel processing failed: {e}")
+        log_stage_to_db("image_engine", "Image Engine", "failed", error_message=str(e))
+        log_stage_to_db("narrator", "Narrator", "failed", error_message=str(e))
         db.close()
         return False
 
-    logger.info("Parallel Processing completed.")
-
-    # 3. Generate Timestamps (The Single Source of Truth via Whisper)
-    # [DASHBOARD INTEGRATION] تسجيل مرحلة whisper
-    reporter.stage_start("whisper", "Whisper", current_task="Generating timestamps")
+    # 3. Whisper Timestamps
+    whisper_start = time.time()
+    log_stage_to_db("whisper", "Whisper", "running")
     try:
         timestamps_path = "output/audio/voice_timestamps.json"
         WhisperEngine.generate_timestamps(voice.audio_path, timestamps_path)
-        voice.timestamps_path = timestamps_path  # Inject the SSOT
-
-        reporter.stage_end("whisper", status="completed",
-                          message="Timestamps generated")
-        reporter.add_log("SUCCESS", "whisper", "Whisper transcription completed")
+        voice.timestamps_path = timestamps_path
+        log_stage_to_db("whisper", "Whisper", "completed",
+                        execution_time=time.time() - whisper_start)
     except Exception as e:
-        reporter.stage_end("whisper", status="failed", error_message=str(e))
-        reporter.add_log("ERROR", "whisper", f"Whisper failed: {str(e)}")
-        logger.error(f"Whisper failed: {e}")
+        log_stage_to_db("whisper", "Whisper", "failed", error_message=str(e))
         db.close()
         return False
 
-    # 4. Generate Subtitles (Reading from Whisper SSOT)
-    # [DASHBOARD INTEGRATION] تسجيل مرحلة timeline
-    reporter.stage_start("timeline", "Timeline", current_task="Assembling timeline")
+    # 4. Subtitles
+    timeline_start = time.time()
+    log_stage_to_db("timeline", "Timeline", "running")
     try:
         _, ass_path = SubtitleEngine().generate(content, voice)
-        reporter.stage_end("timeline", status="completed",
-                          message="Timeline assembled")
+        log_stage_to_db("timeline", "Timeline", "completed",
+                        execution_time=time.time() - timeline_start)
     except Exception as e:
-        reporter.stage_end("timeline", status="failed", error_message=str(e))
-        logger.error(f"Timeline failed: {e}")
+        log_stage_to_db("timeline", "Timeline", "failed", error_message=str(e))
         db.close()
         return False
 
-    # 5. Compose Video (Timeline inside will read Whisper SSOT)
-    # [DASHBOARD INTEGRATION] تسجيل مرحلة render مع قياس الزمن
+    # 5. Render
     render_start = time.time()
-    reporter.stage_start("render", "Render", current_task="Composing video with FFmpeg")
+    log_stage_to_db("render", "Render", "running")
     try:
         video_model = VideoComposer().compose(content, voice, images, ass_path, topic)
         video_path = video_model.video_path
         render_time = time.time() - render_start
-
-        reporter.stage_end("render", status="completed",
-                          message=f"Video rendered: {video_path}",
-                          execution_time_seconds=round(render_time, 2))
-        reporter.add_log("SUCCESS", "render", f"Video rendered in {render_time:.1f}s")
+        log_stage_to_db("render", "Render", "completed",
+                        execution_time=render_time,
+                        message=f"Video rendered: {video_path}")
     except Exception as e:
-        reporter.stage_end("render", status="failed", error_message=str(e))
-        reporter.add_log("ERROR", "render", f"Render failed: {str(e)}")
-        logger.error(f"Render failed: {e}")
+        log_stage_to_db("render", "Render", "failed",
+                        execution_time=time.time() - render_start,
+                        error_message=str(e))
         db.close()
         return False
 
-    # 6. Quality Gate
-    # [DASHBOARD INTEGRATION] تسجيل مرحلة quality_check
-    reporter.stage_start("quality_check", "Quality Check", current_task="Running quality checks")
+    # 6. Quality Check
+    qc_start = time.time()
+    log_stage_to_db("quality_check", "Quality Check", "running")
     logger.info("Running Quality Checks...")
     try:
         quality_result = QualityChecker().run_all_checks(
@@ -179,92 +248,45 @@ def run_pipeline(video_index: int):
 
         if quality_result["status"] == "FAIL":
             logger.error(f"Video #{video_index + 1} REJECTED: {quality_result['reason']}")
-            reporter.stage_end("quality_check", status="failed",
-                              error_message=quality_result['reason'])
-            reporter.add_log("ERROR", "quality_check",
-                           f"Quality check failed: {quality_result['reason']}")
-
-            # [DASHBOARD INTEGRATION] تسجيل الفيديو كـ failed
-            reporter.add_video(
-                title=content.title,
-                status="failed",
-                category=topic,
-                niche=config.NICHE,
-                hook=getattr(content, 'hook', None),
-                script=getattr(content, 'script', None),
-                render_time_seconds=round(render_time, 2),
-            )
-
+            log_stage_to_db("quality_check", "Quality Check", "failed",
+                            execution_time=time.time() - qc_start,
+                            error_message=quality_result['reason'])
             Cleaner.cleanup_temp_files()
             Cleaner.cleanup_final_video(video_path)
             db.close()
             return False
 
-        reporter.stage_end("quality_check", status="completed",
-                          message="All quality checks passed")
-        reporter.add_log("SUCCESS", "quality_check", "Quality checks passed")
+        log_stage_to_db("quality_check", "Quality Check", "completed",
+                        execution_time=time.time() - qc_start)
     except Exception as e:
-        reporter.stage_end("quality_check", status="failed", error_message=str(e))
-        logger.error(f"Quality check failed: {e}")
+        log_stage_to_db("quality_check", "Quality Check", "failed", error_message=str(e))
         db.close()
         return False
 
-    # 7. Upload to YouTube
-    # [DASHBOARD INTEGRATION] تسجيل مرحلة upload مع قياس الزمن
+    # 7. Upload
     upload_start = time.time()
-    reporter.stage_start("upload", "Upload", current_task="Uploading to YouTube")
+    log_stage_to_db("upload", "Upload", "running")
     try:
-        # محاولة الرفع
         youtube_video_id = YouTubeUploader().upload(video_path, content, topic)
         upload_time = time.time() - upload_start
-
-        # [DASHBOARD INTEGRATION] تسجيل الفيديو كـ published
         video_url = f"https://www.youtube.com/watch?v={youtube_video_id}" if youtube_video_id else None
-        reporter.stage_end("upload", status="completed",
-                          message=f"Uploaded: {video_url}",
-                          execution_time_seconds=round(upload_time, 2))
-
-        reporter.add_video(
-            title=content.title,
-            status="published",
-            video_url=video_url,
-            duration_seconds=config.VIDEO_DURATION,
-            external_video_id=youtube_video_id,
-            category=topic,
-            niche=config.NICHE,
-            hook=getattr(content, 'hook', None),
-            script=getattr(content, 'script', None),
-            render_time_seconds=round(render_time, 2),
-            upload_time_seconds=round(upload_time, 2),
-            generation_time_seconds=round(render_time + upload_time, 2),
-        )
-        reporter.add_log("SUCCESS", "upload", f"Video uploaded: {video_url}")
-
+        log_stage_to_db("upload", "Upload", "completed",
+                        execution_time=upload_time,
+                        message=f"Uploaded: {video_url}")
     except Exception as e:
         upload_time = time.time() - upload_start
-        reporter.stage_end("upload", status="failed", error_message=str(e))
-        reporter.add_log("ERROR", "upload", f"Upload failed: {str(e)}")
-
-        # [DASHBOARD INTEGRATION] تسجيل الفيديو كـ failed
-        reporter.add_video(
-            title=content.title,
-            status="failed",
-            category=topic,
-            niche=config.NICHE,
-            render_time_seconds=round(render_time, 2),
-            upload_time_seconds=round(upload_time, 2),
-        )
-
+        log_stage_to_db("upload", "Upload", "failed",
+                        execution_time=upload_time,
+                        error_message=str(e))
         logger.error(f"Upload failed: {e}")
-        # نكمل عادي حتى لو الرفع فشل، الفيديو موجود محلياً
         youtube_video_id = None
-        video_url = None
 
     # Save to database
     try:
-        db.save_video(content.title, getattr(content, 'hook', ''), getattr(content, 'script', ''), topic)
+        db.save_video(content.title, getattr(content, 'hook', ''),
+                     getattr(content, 'script', ''), topic)
     except Exception as e:
-        logger.warning(f"Failed to save video to local DB: {e}")
+        logger.warning(f"Failed to save to local DB: {e}")
 
     db.close()
     logger.info(f"Video #{video_index + 1} Pipeline Completed Successfully!")
@@ -272,10 +294,11 @@ def run_pipeline(video_index: int):
 
 
 def main():
-    """الـ entry point الرئيسي."""
-    # [DASHBOARD INTEGRATION] تهيئة الـ reporter
-    reporter = get_reporter()
-    reporter.add_log("INFO", "system", f"Pipeline started — target: {config.VIDEOS_PER_DAY} videos")
+    """Entry point."""
+    logger.info("Starting AutoShortsAI Daily Run...")
+
+    run_start = time.time()
+    started_at = datetime.now().isoformat()
 
     success_count = 0
     failure_count = 0
@@ -288,7 +311,7 @@ def main():
             else:
                 failure_count += 1
 
-        # [DASHBOARD INTEGRATION] إنهاء الـ run
+        # تحديد الحالة النهائية
         if failure_count == 0:
             run_status = "completed"
             error_msg = None
@@ -299,29 +322,38 @@ def main():
             run_status = "partial"
             error_msg = f"{failure_count} of {config.VIDEOS_PER_DAY} videos failed"
 
-        reporter.finish_run(status=run_status, error_message=error_msg)
-        reporter.add_log(
-            "SUCCESS" if run_status == "completed" else "WARNING",
-            "system",
-            f"Pipeline finished: {success_count} success, {failure_count} failed"
+        execution_time = time.time() - run_start
+        log_pipeline_run_to_db(
+            status=run_status,
+            started_at=started_at,
+            finished_at=datetime.now().isoformat(),
+            execution_time=execution_time,
+            target_videos=config.VIDEOS_PER_DAY,
+            completed_videos=success_count,
+            failed_videos=failure_count,
+            error_message=error_msg,
         )
 
         logger.info(f"\n{'='*50}")
         logger.info(f"Pipeline completed: {success_count}/{config.VIDEOS_PER_DAY} videos")
+        logger.info(f"Status: {run_status}")
+        logger.info(f"Total time: {execution_time:.1f}s")
         logger.info(f"{'='*50}")
 
     except Exception as e:
-        # [DASHBOARD INTEGRATION] لو حصل خطأ عام
         error_msg = f"Pipeline crashed: {str(e)}\n{traceback.format_exc()}"
-        reporter.finish_run(status="failed", error_message=error_msg)
-        reporter.add_log("ERROR", "system", f"Pipeline crashed: {str(e)}")
+        log_pipeline_run_to_db(
+            status="failed",
+            started_at=started_at,
+            finished_at=datetime.now().isoformat(),
+            execution_time=time.time() - run_start,
+            target_videos=config.VIDEOS_PER_DAY,
+            completed_videos=success_count,
+            failed_videos=failure_count,
+            error_message=error_msg,
+        )
         logger.error(error_msg)
         raise
-
-    finally:
-        # [DASHBOARD INTEGRATION] إرسال التقرير للـ dashboard في كل الحالات
-        logger.info("Sending report to dashboard...")
-        reporter.send()
 
 
 if __name__ == "__main__":

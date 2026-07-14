@@ -1,19 +1,16 @@
 # Render.com configuration for AutoShortsAI Dashboard
-# https://render.com/docs/blueprint-spec
+# النسخة المجانية بدون Disk — يستخدم GitHub لتخزين الـ DB
 
 services:
   - type: web
     name: autoshortsai-dashboard
     runtime: python
-    plan: free  # ممكن ترفّعه لـ starter ($7/شهر) لأداء أفضل
+    plan: free
     rootDir: backend
-    # أمر البناء
     buildCommand: |
       pip install --upgrade pip
       pip install -r requirements.txt
-    # أمر التشغيل
     startCommand: python run.py
-    # متغيرات البيئة (القيم الحساسة هتتحط من لوحة Render)
     envVars:
       - key: APP_NAME
         value: AutoShortsAI Dashboard
@@ -26,7 +23,6 @@ services:
       - key: APP_PORT
         value: "8000"
       - key: ASA_DATABASE_URL
-        # هنستخدم SQLite محفوظ على disk
         value: sqlite+aiosqlite:///./data/autoshortsai.db
       - key: LOG_LEVEL
         value: INFO
@@ -34,23 +30,20 @@ services:
         value: "true"
       - key: ENABLE_SEED
         value: "false"
-      # المتغيرات اللي لازم تتحط من لوحة Render (مفيش قيم افتراضية):
-      - key: DASHBOARD_API_KEY
-        sync: false  # مهم: متخليش القيمة تظهر في الـ git
       - key: CORS_ORIGINS
-        value: '["*"]'  # أو حدد الدومين بتاعك بعد النشر
-    # disk دائم لقاعدة البيانات (عشان ما تتمسش عند redeploy)
-    disk:
-      name: dashboard-data
-      mountPath: /opt/render/project/src/backend/data
-      sizeGB: 1  # 1GB كافية جداً لـ SQLite
-    # فحص الصحة
+        value: '["*"]'
+      # المتغيرات اللي لازم تتحط من لوحة Render:
+      - key: DASHBOARD_API_KEY
+        sync: false
+      # لتخزين الـ DB على GitHub (بدل Disk):
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITHUB_DB_REPO
+        value: akerolos/autoshortsai-dashboard-db
+      - key: GITHUB_DB_BRANCH
+        value: main
+      - key: GITHUB_DB_PATH
+        value: dashboard.db
+    # ✅ مفيش Disk — مجاني تماماً بدون فيزا
     healthCheckPath: /api/health
-    autoDeploy: true  # نشر تلقائي عند كل push للـ main branch
-
-# ملاحظات:
-# 1. بعد أول deploy، روح على لوحة Render وضيف DASHBOARD_API_KEY بنفسك
-# 2. عشان تستخدم PostgreSQL بدل SQLite (موصى به للإنتاج):
-#    - اعمل database جديد على Render
-#    - غيّر ASA_DATABASE_URL لـ postgresql+asyncpg://...
-#    - شيل الـ disk
+    autoDeploy: true

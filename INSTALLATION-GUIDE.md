@@ -1,366 +1,178 @@
-# 🚀 دليل التثبيت الكامل — ربط AutoShortsAI بـ Dashboard
+# 🚀 الدليل البسيط — تشغيل الـ Dashboard على GitHub Pages (بدون فيزا)
 
-> **الموضوع كله في 3 مراحل:** نشر الـ Dashboard على الإنترنت → تعديل مشروعك → ربطهم ببعض.
-
----
-
-## 📋 قبل ما تبدأ — احتياجاتك
-
-| الحاجة | ليه محتاجها |
-|--------|-------------|
-| حساب GitHub | عندك بالفعل (عندك مشروع عليه) |
-| حساب Render.com | للنشر المجاني للـ Dashboard |
-| مشروع AutoShortsAI | عندك بالفعل |
-| صبر 30 دقيقة | الموضوع كله مش هياخد أكتر من كده |
+> ✅ الطريقة دي **مجانية 100%** ومش محتاجة أي كارت دفع.
 
 ---
 
-## 🎯 المرحلة الأولى: نشر الـ Dashboard على Render.com
+## 🎯 الفكرة باختصار
 
-### الخطوة 1: ارفع الـ Dashboard على GitHub
+```
+GitHub Action (مشروع AutoShortsAI)
+  ↓ يشغّل الـ pipeline يومياً
+  ↓ يحدّث videos.db
+  ↓ يبعت DB للـ dashboard repo
+Dashboard repo (autoshortsai-dashboard)
+  ↓ يستقبل الـ DB
+  ↓ يولّد ملفات JSON
+  ↓ ينشرهم على GitHub Pages
+أنت تفتح اللينك → تشوف كل حاجة محدّثة ✨
+```
 
-1. **افتح موقع GitHub** واعمل repo جديد:
-   - اسم الـ repo: `autoshortsai-dashboard`
-   - **Private** (مش public — عشان الكود بتاعك)
-   - متحدّش `README` ولا `.gitignore` (إحنا عندنا)
+---
 
-2. **نزّل ملف الـ ZIP** اللي بعتهولك قبل كده (`autoshortsai-dashboard.zip`) وفكّه.
+## 📋 اللي هتعمله (5 خطوات بس)
 
-3. **داخل المجلد اللي فكّيته**، افتح Terminal واكتب:
+### الخطوة 1: نزّل الـ ZIP الجديد
 
-```bash
+نزّل `autoshortsai-dashboard.zip` وفكّه على جهازك.
+
+---
+
+### الخطوة 2: ارفع الـ Dashboard على GitHub (لو عملته قبل كده، تجاوز)
+
+لو رفعت الـ dashboard repo قبل كده، امسحه وارفع النسخة الجديدة:
+
+```powershell
 cd autoshortsai-dashboard
-
-# تهيئة Git
 git init
 git add .
-git commit -m "Initial commit: AutoShortsAI Dashboard"
-
-# اربط الـ repo بتاعك (غيّر اليوزر نيم)
-git remote add origin https://github.com/YOUR_USERNAME/autoshortsai-dashboard.git
+git commit -m "Static dashboard"
 git branch -M main
-git push -u origin main
+git remote add origin https://github.com/akerolos/autoshortsai-dashboard.git
+git push -u origin main --force
 ```
 
-### الخطوة 2: اعمل حساب على Render.com
-
-1. روح على **https://render.com**
-2. اضغط **Get Started** واعمل حساب بـ GitHub
-3. authorize Render عشان يقدر يوصل لـ repos بتاعتك
-
-### الخطوة 3: أنشئ Web Service جديد
-
-1. من لوحة Render، اضغط **New +** → **Web Service**
-2. اختار الـ repo: `autoshortsai-dashboard`
-3. املأ الإعدادات:
-
-| الحقل | القيمة |
-|------|------|
-| **Name** | `autoshortsai-dashboard` |
-| **Region** | الأقرب ليك (مثلاً Frankfurt لو في أوروبا) |
-| **Branch** | `main` |
-| **Root** | `backend` (مهم!) |
-| **Runtime** | `Python 3` |
-| **Build Command** | `pip install -r requirements.txt` |
-| **Start Command** | `python run.py` |
-| **Instance Type** | `Free` (كافي جداً للبداية) |
-
-4. اضغط **Advanced** وضيف **Environment Variables**:
-
-| Key | Value |
-|-----|-------|
-| `APP_ENV` | `production` |
-| `APP_DEBUG` | `false` |
-| `ASA_DATABASE_URL` | `sqlite+aiosqlite:///./data/autoshortsai.db` |
-| `LOG_LEVEL` | `INFO` |
-| `LOG_JSON` | `true` |
-| `ENABLE_SEED` | `false` |
-| `CORS_ORIGINS` | `["*"]` |
-| `DASHBOARD_API_KEY` | (هنعمله في الخطوة الجاية) |
-
-5. اعمل **Disk** للحفاظ على قاعدة البيانات:
-   - اضغط **Add Disk**
-   - **Name**: `dashboard-data`
-   - **Mount Path**: `/opt/render/project/src/backend/data`
-   - **Size**: `1 GB`
-
-6. اضغط **Create Web Service** ←.Render ه يبدأ البناء (هياخد 2-3 دقايق).
-
-### الخطوة 4: ولّد API Key سري
-
-في الـ Terminal على جهازك، شغّل:
-
-```bash
-python -c "import secrets; print(secrets.token_urlsafe(32))"
-```
-
-هيطلعلك string طويل زي ده:
-```
-aB3cD4eF5gH6iJ7kL8mN9oP0qR1sT2uV3wX4yZ5
-```
-
-**انسخه** وارجع للوحة Render:
-
-1. افتح الـ service بتاعك
-2. روح على **Environment** → **Add Environment Variable**
-3. **Key**: `DASHBOARD_API_KEY`
-4. **Value**: الـ string اللي نسخته
-5. **Save Changes**
-
-Render هييعمل redeploy تلقائياً.
-
-### الخطوة 5: اختبر الـ Dashboard
-
-بعد ما الـ deploy يخلص (اللون يبقى أخضر):
-
-1. Render هيدّيك لينك زي: `https://autoshortsai-dashboard-xxxx.onrender.com`
-2. افتحه في المتصفح ←.هتلاقي الـ Dashboard فاضي (مفيش بيانات لسه)
-3. **اختبار الـ API** — افتح Terminal:
-
-```bash
-# حفظ اللينك والـ key في متغيرات
-export DASHBOARD_URL="https://autoshortsai-dashboard-xxxx.onrender.com"
-export DASHBOARD_API_KEY="الـ key اللي عملته"
-
-# اختبار الاتصال
-curl -s "$DASHBOARD_URL/api/health"
-# لازم يرجّع: {"status":"ok",...}
-
-# اختبار الـ report endpoint
-curl -s -X POST "$DASHBOARD_URL/api/v1/report/pipeline" \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $DASHBOARD_API_KEY" \
-  -d '{
-    "run_uid": "test-manual-001",
-    "status": "completed",
-    "target_videos": 5,
-    "completed_videos": 5,
-    "started_at": "2026-07-14T18:00:00Z",
-    "finished_at": "2026-07-14T18:45:00Z",
-    "execution_time_seconds": 2700,
-    "stages": [
-      {"stage_key": "content_engine", "stage_name": "Content Engine", "status": "completed", "progress": 100, "execution_time_seconds": 45.2}
-    ],
-    "videos": [
-      {"title": "Test Video", "status": "published", "video_url": "https://youtube.com/watch?v=test", "category": "test"}
-    ],
-    "logs": [
-      {"level": "INFO", "source": "system", "message": "Test report"}
-    ]
-  }'
-```
-
-لو رجّع `{"success": true, ...}` ←.**الـ Dashboard جاهز!** ✅
-
-افتح اللينك في المتصفح تاني، هتلاقي البيانات ظهرت فيه.
+> `--force` عشان ياستبدل القديم.
 
 ---
 
-## 🔧 المرحلة الثانية: تعديل مشروع AutoShortsAI
+### الخطوة 3: فعّل GitHub Pages على الـ dashboard repo
 
-دلوقتي هتعدّل مشروعك الأصلي عشان يبعت تقارير للـ Dashboard.
+1. افتح https://github.com/akerolos/autoshortsai-dashboard
+2. روح على **Settings** → **Pages** (من القائمة الجانبية اللي على اليسار)
+3. تحت **Build and deployment**:
+   - **Source**: اختار **GitHub Actions** (مش Deploy from a branch)
+4. ✅ خلاص! الـ GitHub Actions هتتبني تلقائياً وتنشر الـ dashboard.
 
-### الخطوة 1: انسخ مجلد `dashboard/`
+**استنى 2-3 دقايق**، وبعدها هتلاقي لينك أخضر فوق الصفحة:
+`https://akerolos.github.io/autoshortsai-dashboard/`
 
-من ملف الـ ZIP اللي بعتهولك، فيه مجلد اسمه `integration/autoshortsai-main/dashboard/`.
+افتح اللينك — هتلاقي الـ Dashboard شغّال (ببيانات فاضية لحد ما الـ pipeline يشتغل).
 
-1. **افتح مشروع AutoShortsAI** على جهازك
-2. **انسخ مجلد `dashboard/`** كامل لمجلد المشروع الرئيسي:
+---
+
+### الخطوة 4: اعمل Personal Access Token لـ AutoShortsAI
+
+عشان AutoShortsAI repo يقدر يبعت الـ DB للـ dashboard repo:
+
+1. روح على https://github.com/settings/tokens?type=beta
+2. اضغط **Generate new token**
+3. الإعدادات:
+   - **Token name**: `Dashboard Sync`
+   - **Expiration**: `90 days`
+   - **Repository access**: اختار **"Only select repositories"** → اختار `autoshortsai-dashboard`
+   - **Permissions** → **Repository permissions** → **Contents** → **Read and write**
+4. اضغط **Generate token**
+5. **انسخ الـ token** (يبدأ بـ `github_pat_...`)
+
+---
+
+### الخطوة 5: ضيف Secrets لـ AutoShortsAI repo
+
+1. افتح https://github.com/YOUR_USERNAME/autoshortsai-main (أو اسم مشروعك)
+2. روح على **Settings** → **Secrets and variables** → **Actions**
+3. اضغط **New repository secret** وضيف 2 secrets:
+
+| Name | Value |
+|------|-------|
+| `DASHBOARD_REPO_TOKEN` | الـ token اللي نسخته في الخطوة 4 |
+| `DASHBOARD_REPO` | `akerolos/autoshortsai-dashboard` (غيّر `akerolos` ليوزر نيمك) |
+
+---
+
+### الخطوة 6: انسخ ملفات الـ integration لمشروع AutoShortsAI
+
+من الـ ZIP، هتلاقي مجلد `integration/autoshortsai-main/` فيه:
+- `main.py` (معدّل)
+- `.github/workflows/daily_run.yml` (معدّل)
+
+**استبدل نفس الملفات في مشروعك:**
 
 ```
 autoshortsai-main/
-├── ai/
-├── brain/
-├── database/
-├── dashboard/        ← نسخة جديدة
-│   ├── __init__.py
-│   ├── reporter.py
-│   ├── requirements.txt
-│   └── generate_api_key.py
-├── images/
-├── ...
-└── main.py
+├── main.py                              ← استبدل ده
+└── .github/workflows/daily_run.yml      ← استبدل ده
 ```
 
-### الخطوة 2: استبدل `main.py` بتاعك
-
-من ملف الـ ZIP، هتلاقي ملف `integration/autoshortsai-main/main.py`.
-
-**استبدل الـ `main.py` الأصلي بالملف ده.**
-
-> ⚠️ **مهم:** لو عملت تعديلات على `main.py` بتاعك، حطها في النسخة الجديدة. التعديلات اللي أنا عملتها مميزة بـ `# [DASHBOARD INTEGRATION]`.
-
-### الخطوة 3: حدّث `requirements.txt`
-
-افتح `requirements.txt` في مشروعك وأضف السطر ده في الآخر:
-
-```
-# Dashboard integration
-requests>=2.28.0
-```
-
-### الخطوة 4: استبدل `daily_run.yml`
-
-من ملف الـ ZIP، هتلاقي:
-`integration/autoshortsai-main/.github/workflows/daily_run.yml`
-
-**استبدل الملف الموجود عندك:**
-`autoshortsai-main/.github/workflows/daily_run.yml`
-
-### الخطوة 5: ارفع التعديلات على GitHub
-
-```bash
+ارفع التعديلات:
+```powershell
 cd autoshortsai-main
-
 git add .
-git commit -m "Add dashboard integration"
+git commit -m "Add dashboard sync"
 git push
 ```
 
 ---
 
-## 🔗 المرحلة الثالثة: ربط GitHub Actions بالـ Dashboard
+### الخطوة 7: شغّل الـ workflow!
 
-### الخطوة 1: ضيف Secrets لـ AutoShortsAI repo
-
-1. افتح repo بتاع AutoShortsAI على GitHub
-2. روح على **Settings** → **Secrets and variables** → **Actions**
-3. اضغط **New repository secret** وضيف الـ secrets دي:
-
-| Name | Value |
-|------|-------|
-| `DASHBOARD_URL` | اللينك بتاع الـ Dashboard من Render (مثلاً: `https://autoshortsai-dashboard-xxxx.onrender.com`) |
-| `DASHBOARD_API_KEY` | نفس الـ API key اللي عملته في المرحلة الأولى |
-
-> ✅ باقي الـ secrets (GEMINI_API_KEY, PEXELS_API_KEY, etc.) موجودة عندك بالفعل.
-
-### الخطوة 2: اختبر الـ workflow يدوياً
-
-1. على GitHub، روح على repo بتاع AutoShortsAI
-2. اضغط **Actions** → **AutoShortsAI Daily Run**
+1. روح على https://github.com/YOUR_USERNAME/autoshortsai-main/actions
+2. اختار **AutoShortsAI Daily Run**
 3. اضغط **Run workflow** → **Run workflow**
-4. استنى لحد ما الـ workflow يخلص (5-10 دقايق عادةً)
+4. استنى 5-10 دقايق لحد ما يخلص
 
-### الخطوة 3: شوف النتيجة في الـ Dashboard
+بعد ما يخلص:
+- ✅ الـ DB هتتبعت تلقائياً للـ dashboard repo
+- ✅ الـ dashboard repo هيبني الـ JSON تلقائياً
+- ✅ GitHub Pages هيتحدّث تلقائياً
 
-بعد ما الـ workflow يخلص:
+افتح اللينك: `https://akerolos.github.io/autoshortsai-dashboard/`
 
-1. افتح لينك الـ Dashboard على Render
-2. هتلاقي:
-   - ✅ Pipeline Status: آخر run وكل مراحله
-   - ✅ Today's Videos: الفيديوهات اللي اتعملت
-   - ✅ Logs: كل اللي حصل أثناء الـ run
-   - ✅ Charts: التحديثات اليومية
+🎉 **هتلاقي كل بياناتك ظاهرة!** الفيديوهات، الـ logs، الـ charts، كل حاجة.
 
 ---
 
-## 🎉 خلصت! إيه اللي بقى شغّال؟
+## 🔄 إيه اللي بيحصل كل يوم تلقائياً؟
 
-| الحاجة | الوضع |
-|--------|------|
-| Dashboard على الإنترنت | ✅ متاح 24/7 من أي مكان |
-| GitHub Actions بيبعت تقارير | ✅ تلقائياً بعد كل run |
-| بيانات حقيقية (مش تجريبية) | ✅ كل فيديو في Dashboard موجود فعلاً |
-| Logs حية | ✅ كل log في main.py بيظهر في الـ dashboard |
-| Pipeline status | ✅ كل مرحلة وحالتها وزمنها |
-
----
-
-## 🧪 اختبار سريع (لو حابب تتأكد قبل ما تشغل الـ workflow كامل)
-
-في الـ Terminal على جهازك (لو عندك Python):
-
-```bash
-# في مجلد مشروع AutoShortsAI
-export DASHBOARD_URL="https://autoshortsai-dashboard-xxxx.onrender.com"
-export DASHBOARD_API_KEY="your-api-key"
-
-python -c "
-from dashboard import get_reporter
-
-reporter = get_reporter()
-print('Reporter enabled:', reporter.is_enabled())
-print('Run UID:', reporter.run_uid)
-
-# محاكاة run بسيط
-reporter.stage_start('content_engine', 'Content Engine', 'Generating ideas')
-reporter.stage_end('content_engine', status='completed', message='Done!')
-reporter.add_video(
-    title='Test Video from Local',
-    status='published',
-    video_url='https://youtube.com/watch?v=test',
-    external_video_id='test-local-001',
-    category='Test',
-)
-reporter.finish_run(status='completed')
-reporter.send()
-"
-```
-
-لو رجّع `Report sent successfully` ←.كل حاجة شغّالة صح! 🎉
-
-افتح الـ Dashboard وشوف البيانات الجديدة ظهرت.
+| الوقت | الحدث |
+|------|------|
+| (اللي أنت محدده) | Cloudflare يطلب من GitHub Actions يشغّل AutoShortsAI |
+| + 5-10 دقايق | الـ pipeline يشغّل، ينتج 5 فيديوهات، يرفعهم على YouTube |
+| + 1 دقيقة | الـ DB تتبعت للـ dashboard repo |
+| + 1-2 دقيقة | الـ dashboard repo يبني الـ JSON وينشرهم على GitHub Pages |
+| بعدها | تفتح اللينك وتشوف كل حاجة محدّثة |
 
 ---
 
-## 🚨 مشاكل شائعة وحلولها
+## 🚨 مشاكل محتملة وحلولها
 
-### مشكلة 1: "Failed to send report" في GitHub Actions
+### مشكلة: الـ dashboard بيفتح بس فاضي
+- تأكد إن الـ GitHub Action على AutoShortsAI اشتغل بنجاح (Actions tab)
+- شوف logs الـ Action — لازم تلاقي `Dashboard update triggered!`
+- استنى دقيقة كاملة عشان الـ dashboard repo يبني
 
-**السبب المحتمل:**
-- الـ `DASHBOARD_URL` أو `DASHBOARD_API_KEY` مش متظبطين في GitHub Secrets
+### مشكلة: GitHub Pages مش شغّال
+- روح على Settings → Pages على dashboard repo
+- تأكد إن Source = **GitHub Actions**
+- شوف Actions tab — لازم تلاقي workflow اسمه "Build Static Dashboard" اشتغل
 
-**الحل:**
-1. تأكد إن الـ secrets مكتوبة صح في GitHub (بدون مسافات في الآخر)
-2. تأكد إن `DASHBOARD_URL` بدون `/` في الآخر (مظبوطة: `https://xxx.onrender.com` — غلط: `https://xxx.onrender.com/`)
-3. شوف logs الـ GitHub Action فيه تفاصيل أكتر
+### مشكلة: "Resource not accessible" في GitHub Action
+- الـ token مش عنده صلاحيات كافية
+- اتأكد إنك اخترت `Contents: Read and write` لما عملت الـ token
+- اتأكد إنك اختارت `autoshortsai-dashboard` repo في `Repository access`
 
-### مشكلة 2: الـ Dashboard بيفتح بس فاضي
-
-**السبب:** الـ reporter في `main.py` مش بيتبعت، أو الـ GitHub Action فشل.
-
-**الحل:**
-1. روح على GitHub Actions وشوف logs الـ workflow
-2. دور على `[Dashboard]` في الـ logs — لازم تلاقي رسائل من الـ reporter
-3. لو مفيش، تأكد إن `dashboard/__init__.py` و `dashboard/reporter.py` موجودين في مشروعك
-
-### مشكلة 3: Render service بيقول "Build failed"
-
-**السبب:** مشاكل في dependencies.
-
-**الحل:**
-1. شوف logs الـ build على Render
-2. لو في خطأ `module not found`، اتأكد إن كل حاجة في `requirements.txt`
-3. جرّب تشغيل `pip install -r requirements.txt` محلياً قبل ما ترفع
-
-### مشكلة 4: الـ Dashboard بطيء
-
-**السبب:** Render free tier بياخد وقت عشان "يصحى" لو مفيش traffic.
-
-**الحل:**
-- استنى 30 ثانية لأول request (ده طبيعي في free tier)
-- لو عايز أداء أعلى، ارتقِ لـ **Starter plan** ($7/شهر)
+### مشكلة: الـ dashboard بيظهر فيها "0" لكل الإحصائيات
+- ده طبيعي في أول مرة (مفيش فيديوهات لسه)
+- شغّل الـ workflow مرة واحدة وانتظر
+- بعد ما يخلص، حدّث الصفحة
 
 ---
 
-## 📞 لو احتجت مساعدة
+## 📞 لو وقفت في أي خطوة
 
-لو وقفت في أي خطوة، ابعتلي:
-1. screenshot للخطأ
-2. الـ logs (من GitHub Actions أو Render)
-3. الخطوة اللي وصلتها
+ابعتلي:
+1. اسم الخطوة اللي وقفت فيها
+2. screenshot للخطأ (لو فيه)
+3. الـ logs من GitHub Actions (Actions tab → اضغط على الـ run الفاشل)
 
-وأنا هساعدك تكمّل. 🚀
-
----
-
-## 🎁 تحسينات مستقبلية (اختيارية)
-
-بعد ما كل حاجة تشتغل، تقدر تضيف:
-
-1. **YouTube Stats Fetcher** — يجلب views/CTR/retention حقيقية كل ساعة
-2. **Telegram Notifications** — يبعتلك رسالة لو الـ pipeline فشل
-3. **Manual Trigger Button** — زرار في الـ Dashboard يشغّل الـ GitHub Action
-4. **Multi-channel Support** — لو عندك أكتر من قناة يوتيوب
-
-بس الأول، خلّي الأساسيات تشتغل! 😊
+وأنا هساعدك فوراً! 🚀

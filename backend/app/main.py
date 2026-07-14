@@ -47,6 +47,17 @@ async def lifespan(app: FastAPI):
     await init_db()
     logger.info("Database initialized")
 
+    # تحميل نسخة من الـ DB من GitHub (لو متفعّل)
+    try:
+        from app.core.github_storage import github_storage
+        from app.core.config import settings
+        if github_storage.enabled:
+            db_path = settings.resolved_database_url.split(":///")[-1]
+            await github_storage.download_db(db_path)
+            logger.info("DB sync from GitHub completed")
+    except Exception as e:
+        logger.warning(f"Failed to sync DB from GitHub: {e}")
+
     # زرع البيانات التجريبية في وضع التطوير فقط (لو ENABLE_SEED=true)
     import os
     enable_seed = os.environ.get("ENABLE_SEED", "").lower() in ("true", "1", "yes")

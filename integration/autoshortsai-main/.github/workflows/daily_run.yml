@@ -2,11 +2,9 @@ name: AutoShortsAI Daily Run
 
 on:
   workflow_dispatch: # يشغل فقط عندما يطلبه Cloudflare
-  # تم حذف الـ schedule من هنا
 
 permissions:
   contents: write
-
 
 concurrency:
   group: autoshorts-daily-run
@@ -48,7 +46,6 @@ jobs:
       run: |
         pip install --upgrade pip
         pip install -r requirements.txt
-        # [DASHBOARD INTEGRATION] تثبيت requests لو مش موجود
         pip install requests
 
     - name: Create .env file
@@ -63,10 +60,7 @@ jobs:
       run: echo '${{ secrets.CLIENT_SECRETS_JSON }}' > client_secrets.json
 
     - name: Run AutoShortsAI
-      # [DASHBOARD INTEGRATION] تمرير متغيرات البيئة للـ reporter
       env:
-        DASHBOARD_URL: ${{ secrets.DASHBOARD_URL }}
-        DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
         GITHUB_RUN_ID: ${{ github.run_id }}
         GITHUB_REPOSITORY: ${{ github.repository }}
         GITHUB_SHA: ${{ github.sha }}
@@ -80,25 +74,61 @@ jobs:
         git commit -m "Update banned ideas & brain memory database [skip ci]" || echo "No changes to commit"
         git push
 
-    # [DASHBOARD INTEGRATION] ملاحظة:
-    # إرسال التقرير بيحصل تلقائياً داخل main.py في الـ finally block
-    # لو حابب تبعت تقرير إضافي (مثلاً فشل الـ run كله قبل ما main.py يشتغل):
+    # === DASHBOARD SYNC ===
+    # نسخ DB كـ Base64 وإرسالها لـ dashboard repo
+    - name: Encode DB and trigger dashboard update
+      env:
+        DASHBOARD_REPO_TOKEN: ${{ secrets.DASHBOARD_REPO_TOKEN }}
+        DASHBOARD_REPO: ${{ secrets.DASHBOARD_REPO }}
+      run: |
+        if [ -z "$DASHBOARD_REPO_TOKEN" ] || [ -z "$DASHBOARD_REPO" ]; then
+          echo "⚠️ DASHBOARD_REPO_TOKEN or DASHBOARD_REPO not set. Skipping dashboard sync."
+          exit 0
+        fi
+
+        echo "📦 Encoding videos.db as base64..."
+        DB_CONTENT=$(base64 -w 0 videos.db)
+        echo "✅ Encoded ($(echo -n "$DB_CONTENT" | wc -c) chars)"
+
+        echo "📤 Triggering dashboard update..."
+        RESPONSE=$(curl -s -X POST \
+          -H "Authorization: token $DASHBOARD_REPO_TOKEN" \
+          -H "Accept: application/vnd.github.v3+json" \
+          "https://api.github.com/repos/$DASHBOARD_REPO/dispatches" \
+          -d "{
+            \"event_type\": \"update-dashboard\",
+            \"client_payload\": {
+              \"db_content\": \"$DB_CONTENT\",
+              \"source_run_id\": \"${{ github.run_id }}\",
+              \"source_repo\": \"${{ github.repository }}\"
+            }
+          }")
+
+        echo "Response: $RESPONSE"
+        echo "✅ Dashboard update triggered!"
+
     - name: Notify Dashboard on Failure
       if: failure()
       env:
-        DASHBOARD_URL: ${{ secrets.DASHBOARD_URL }}
-        DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
-        GITHUB_RUN_ID: ${{ github.run_id }}
-        GITHUB_REPOSITORY: ${{ github.repository }}
-        GITHUB_SHA: ${{ github.sha }}
+        DASHBOARD_REPO_TOKEN: ${{ secrets.DASHBOARD_REPO_TOKEN }}
+        DASHBOARD_REPO: ${{ secrets.DASHBOARD_REPO }}
       run: |
-        python -c "
-        from dashboard import get_reporter
-        reporter = get_reporter()
-        reporter.report['status'] = 'failed'
-        from datetime import datetime, timezone
-        reporter.report['finished_at'] = datetime.now(timezone.utc).isoformat()
-        reporter.report['error_message'] = 'GitHub Action failed before main.py could complete'
-        reporter.add_log('ERROR', 'github_actions', 'Workflow failed at step: Run AutoShortsAI')
-        reporter.send()
-        "
+        if [ -z "$DASHBOARD_REPO_TOKEN" ]; then
+          echo "⚠️ DASHBOARD_REPO_TOKEN not set. Skipping notification."
+          exit 0
+        fi
+
+        curl -s -X POST \
+          -H "Authorization: token $DASHBOARD_REPO_TOKEN" \
+          -H "Accept: application/vnd.github.v3+json" \
+          "https://api.github.com/repos/$DASHBOARD_REPO/dispatches" \
+          -d "{
+            \"event_type\": \"update-dashboard\",
+            \"client_payload\": {
+              \"db_content\": \"\",
+              \"source_run_id\": \"${{ github.run_id }}\",
+              \"source_repo\": \"${{ github.repository }}\",
+              \"status\": \"failed\"
+            }
+          }"
+        echo "✅ Failure notification sent to dashboard"

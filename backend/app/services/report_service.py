@@ -66,6 +66,16 @@ class ReportService:
             "execution_time_seconds": run.execution_time_seconds,
         })
 
+        # 6. رفع نسخة من الـ DB على GitHub (لو متفعّل)
+        try:
+            from app.core.github_storage import github_storage
+            from app.core.config import settings
+            if github_storage.enabled:
+                db_path = settings.resolved_database_url.split(":///")[-1]
+                await github_storage.upload_db(db_path)
+        except Exception as e:
+            logger.warning(f"Failed to upload DB to GitHub: {e}")
+
         logger.info(
             "Report processed successfully",
             run_id=run.id,

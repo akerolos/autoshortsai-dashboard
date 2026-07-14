@@ -89,12 +89,26 @@ function initApp() {
   // Initialize command palette
   commandPalette.init();
 
-  // Connect WebSocket
-  ws.connect('all');
+  // Connect WebSocket (في live mode فقط — يعني لما السيرفر بيشتغل على بورت 8000)
+  // إحنا بنكتشف الـ static mode بـ: مفيش /api/v1/ متاح، أو على github.io، أو مع static=true
+  const isStatic = window.location.hostname.includes('github.io') ||
+                   window.location.search.includes('static=true') ||
+                   window.location.port === '' ||
+                   window.location.port === '80' ||
+                   window.location.port === '8080' ||
+                   window.location.port === '5500';
 
-  // Update WS status indicator
-  events.on('ws:connected', () => updateWSStatus(true));
-  events.on('ws:disconnected', () => updateWSStatus(false));
+  if (!isStatic) {
+    ws.connect('all');
+
+    // Update WS status indicator
+    events.on('ws:connected', () => updateWSStatus(true));
+    events.on('ws:disconnected', () => updateWSStatus(false));
+  } else {
+    // Static mode — مفيش WebSocket
+    console.log('[App] Static mode — WebSocket disabled');
+    updateWSStatus(false);
+  }
 
   // Welcome toast
   setTimeout(() => {

@@ -1,0 +1,66 @@
+name: Receive Database from AutoShortsAI
+
+# الـ workflow ده بيستقبل قاعدة البيانات من AutoShortsAI repo
+# بعد كل run ناجح، ويعيد بناء الـ dashboard.
+
+on:
+  repository_dispatch:
+    types: [update-dashboard]
+  workflow_dispatch:
+    inputs:
+      db_content:
+        description: 'Base64-encoded SQLite DB content'
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  update-db:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Decode and save DB
+      env:
+        DB_CONTENT: ${{ github.event.client_payload.db_content || inputs.db_content }}
+      run: |
+        mkdir -p data
+        if [ -n "$DB_CONTENT" ]; then
+          echo "$DB_CONTENT" | base64 -d > data/autoshortsai.db
+          echo "✅ DB saved ($(stat -c%s data/autoshortsai.db) bytes)"
+        else
+          echo "⚠️ No DB content provided, using existing DB"
+        fi
+
+    - name: Generate Static Data
+      run: |
+        echo "📊 Generating static dashboard data..."
+        python static-builder/generate_static_data.py
+
+    - name: Copy Frontend Assets to docs/
+      run: |
+        echo "📁 Copying frontend assets..."
+        cp -r frontend/assets docs/assets
+        cp frontend/assets/icons/favicon.svg docs/favicon.svg
+        echo "✅ Assets copied"
+
+    - name: Commit changes
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add data/ docs/
+        git commit -m "Update dashboard with latest pipeline data [skip ci]" || echo "No changes to commit"
+        git push
+
+    - name: Trigger Pages deployment
+      uses: peter-evans/repository-dispatch@v3
+      with:
+        event-type: deploy-pages
