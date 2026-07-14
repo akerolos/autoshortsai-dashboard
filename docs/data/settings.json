@@ -10,8 +10,8 @@
           "value_type": "string",
           "category": "channels",
           "description": "Currently active channel identifier",
-          "created_at": "2026-07-14T20:52:33.956457",
-          "updated_at": "2026-07-14T20:52:33.956458"
+          "created_at": "2026-07-14T21:08:07.777786",
+          "updated_at": "2026-07-14T21:08:07.777787"
         }
       ]
     },
@@ -25,8 +25,8 @@
           "value_type": "string",
           "category": "narrator",
           "description": "Voice model used for narration",
-          "created_at": "2026-07-14T20:52:33.956437",
-          "updated_at": "2026-07-14T20:52:33.956438"
+          "created_at": "2026-07-14T21:08:07.777765",
+          "updated_at": "2026-07-14T21:08:07.777766"
         },
         {
           "id": 3,
@@ -35,8 +35,8 @@
           "value_type": "float",
           "category": "narrator",
           "description": "Speech playback rate multiplier",
-          "created_at": "2026-07-14T20:52:33.956439",
-          "updated_at": "2026-07-14T20:52:33.956440"
+          "created_at": "2026-07-14T21:08:07.777767",
+          "updated_at": "2026-07-14T21:08:07.777768"
         }
       ]
     },
@@ -50,8 +50,8 @@
           "value_type": "string",
           "category": "production",
           "description": "Content category for video generation",
-          "created_at": "2026-07-14T20:52:33.956441",
-          "updated_at": "2026-07-14T20:52:33.956442"
+          "created_at": "2026-07-14T21:08:07.777769",
+          "updated_at": "2026-07-14T21:08:07.777770"
         },
         {
           "id": 5,
@@ -60,8 +60,8 @@
           "value_type": "string",
           "category": "production",
           "description": "Version of the prompt template in use",
-          "created_at": "2026-07-14T20:52:33.956443",
-          "updated_at": "2026-07-14T20:52:33.956444"
+          "created_at": "2026-07-14T21:08:07.777771",
+          "updated_at": "2026-07-14T21:08:07.777772"
         },
         {
           "id": 1,
@@ -70,8 +70,8 @@
           "value_type": "int",
           "category": "production",
           "description": "Number of videos to generate per day",
-          "created_at": "2026-07-14T20:52:33.956429",
-          "updated_at": "2026-07-14T20:52:33.956435"
+          "created_at": "2026-07-14T21:08:07.777750",
+          "updated_at": "2026-07-14T21:08:07.777762"
         }
       ]
     },
@@ -85,8 +85,8 @@
           "value_type": "string",
           "category": "render",
           "description": "Output video resolution (width x height)",
-          "created_at": "2026-07-14T20:52:33.956447",
-          "updated_at": "2026-07-14T20:52:33.956448"
+          "created_at": "2026-07-14T21:08:07.777775",
+          "updated_at": "2026-07-14T21:08:07.777776"
         },
         {
           "id": 9,
@@ -95,8 +95,8 @@
           "value_type": "string",
           "category": "render",
           "description": "Subtitle visual style preset",
-          "created_at": "2026-07-14T20:52:33.956452",
-          "updated_at": "2026-07-14T20:52:33.956453"
+          "created_at": "2026-07-14T21:08:07.777781",
+          "updated_at": "2026-07-14T21:08:07.777782"
         },
         {
           "id": 8,
@@ -105,8 +105,8 @@
           "value_type": "int",
           "category": "render",
           "description": "Target video duration in seconds",
-          "created_at": "2026-07-14T20:52:33.956450",
-          "updated_at": "2026-07-14T20:52:33.956451"
+          "created_at": "2026-07-14T21:08:07.777779",
+          "updated_at": "2026-07-14T21:08:07.777780"
         }
       ]
     },
@@ -120,8 +120,8 @@
           "value_type": "string",
           "category": "ui",
           "description": "Dashboard interface language",
-          "created_at": "2026-07-14T20:52:33.956455",
-          "updated_at": "2026-07-14T20:52:33.956456"
+          "created_at": "2026-07-14T21:08:07.777785",
+          "updated_at": "2026-07-14T21:08:07.777785"
         },
         {
           "id": 10,
@@ -130,8 +130,8 @@
           "value_type": "string",
           "category": "ui",
           "description": "Dashboard theme (dark | light)",
-          "created_at": "2026-07-14T20:52:33.956454",
-          "updated_at": "2026-07-14T20:52:33.956455"
+          "created_at": "2026-07-14T21:08:07.777783",
+          "updated_at": "2026-07-14T21:08:07.777784"
         }
       ]
     },
@@ -145,8 +145,8 @@
           "value_type": "string",
           "category": "upload",
           "description": "Scheduled upload time (HH:MM, 24h format)",
-          "created_at": "2026-07-14T20:52:33.956445",
-          "updated_at": "2026-07-14T20:52:33.956446"
+          "created_at": "2026-07-14T21:08:07.777773",
+          "updated_at": "2026-07-14T21:08:07.777774"
         }
       ]
     }
@@ -159,8 +159,8 @@
       "value_type": "string",
       "category": "channels",
       "description": "Currently active channel identifier",
-      "created_at": "2026-07-14T20:52:33.956457",
-      "updated_at": "2026-07-14T20:52:33.956458"
+      "created_at": "2026-07-14T21:08:07.777786",
+      "updated_at": "2026-07-14T21:08:07.777787"
     },
     {
       "id": 2,
@@ -169,8 +169,8 @@
       "value_type": "string",
       "category": "narrator",
       "description": "Voice model used for narration",
-      "created_at": "2026-07-14T20:52:33.956437",
-      "updated_at": "2026-07-14T20:52:33.956438"
+      "created_at": "2026-07-14T21:08:07.777765",
+      "updated_at": "2026-07-14T21:08:07.777766"
     },
     {
       "id": 3,
@@ -179,8 +179,8 @@
       "value_type": "float",
       "category": "narrator",
       "description": "Speech playback rate multiplier",
-      "created_at": "2026-07-14T20:52:33.956439",
-      "updated_at": "2026-07-14T20:52:33.956440"
+      "created_at": "2026-07-14T21:08:07.777767",
+      "updated_at": "2026-07-14T21:08:07.777768"
     },
     {
       "id": 4,
@@ -189,8 +189,8 @@
       "value_type": "string",
       "category": "production",
       "description": "Content category for video generation",
-      "created_at": "2026-07-14T20:52:33.956441",
-      "updated_at": "2026-07-14T20:52:33.956442"
+      "created_at": "2026-07-14T21:08:07.777769",
+      "updated_at": "2026-07-14T21:08:07.777770"
     },
     {
       "id": 5,
@@ -199,8 +199,8 @@
       "value_type": "string",
       "category": "production",
       "description": "Version of the prompt template in use",
-      "created_at": "2026-07-14T20:52:33.956443",
-      "updated_at": "2026-07-14T20:52:33.956444"
+      "created_at": "2026-07-14T21:08:07.777771",
+      "updated_at": "2026-07-14T21:08:07.777772"
     },
     {
       "id": 1,
@@ -209,8 +209,8 @@
       "value_type": "int",
       "category": "production",
       "description": "Number of videos to generate per day",
-      "created_at": "2026-07-14T20:52:33.956429",
-      "updated_at": "2026-07-14T20:52:33.956435"
+      "created_at": "2026-07-14T21:08:07.777750",
+      "updated_at": "2026-07-14T21:08:07.777762"
     },
     {
       "id": 7,
@@ -219,8 +219,8 @@
       "value_type": "string",
       "category": "render",
       "description": "Output video resolution (width x height)",
-      "created_at": "2026-07-14T20:52:33.956447",
-      "updated_at": "2026-07-14T20:52:33.956448"
+      "created_at": "2026-07-14T21:08:07.777775",
+      "updated_at": "2026-07-14T21:08:07.777776"
     },
     {
       "id": 9,
@@ -229,8 +229,8 @@
       "value_type": "string",
       "category": "render",
       "description": "Subtitle visual style preset",
-      "created_at": "2026-07-14T20:52:33.956452",
-      "updated_at": "2026-07-14T20:52:33.956453"
+      "created_at": "2026-07-14T21:08:07.777781",
+      "updated_at": "2026-07-14T21:08:07.777782"
     },
     {
       "id": 8,
@@ -239,8 +239,8 @@
       "value_type": "int",
       "category": "render",
       "description": "Target video duration in seconds",
-      "created_at": "2026-07-14T20:52:33.956450",
-      "updated_at": "2026-07-14T20:52:33.956451"
+      "created_at": "2026-07-14T21:08:07.777779",
+      "updated_at": "2026-07-14T21:08:07.777780"
     },
     {
       "id": 11,
@@ -249,8 +249,8 @@
       "value_type": "string",
       "category": "ui",
       "description": "Dashboard interface language",
-      "created_at": "2026-07-14T20:52:33.956455",
-      "updated_at": "2026-07-14T20:52:33.956456"
+      "created_at": "2026-07-14T21:08:07.777785",
+      "updated_at": "2026-07-14T21:08:07.777785"
     },
     {
       "id": 10,
@@ -259,8 +259,8 @@
       "value_type": "string",
       "category": "ui",
       "description": "Dashboard theme (dark | light)",
-      "created_at": "2026-07-14T20:52:33.956454",
-      "updated_at": "2026-07-14T20:52:33.956455"
+      "created_at": "2026-07-14T21:08:07.777783",
+      "updated_at": "2026-07-14T21:08:07.777784"
     },
     {
       "id": 6,
@@ -269,9 +269,9 @@
       "value_type": "string",
       "category": "upload",
       "description": "Scheduled upload time (HH:MM, 24h format)",
-      "created_at": "2026-07-14T20:52:33.956445",
-      "updated_at": "2026-07-14T20:52:33.956446"
+      "created_at": "2026-07-14T21:08:07.777773",
+      "updated_at": "2026-07-14T21:08:07.777774"
     }
   ],
-  "generated_at": "2026-07-14T20:52:33.962088"
+  "generated_at": "2026-07-14T21:08:07.783690"
 }
