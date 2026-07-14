@@ -1,0 +1,133 @@
+/* ============================================
+   Charts — Canvas containers and styling
+   ============================================ */
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  min-height: 200px;
+}
+
+.chart-container canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.chart-container--sm {
+  height: 180px;
+}
+
+.chart-container--lg {
+  height: 320px;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.chart-legend__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+}
+
+.chart-legend__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.chart-tooltip {
+  position: absolute;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--fs-xs);
+  color: var(--text-primary);
+  pointer-events: none;
+  z-index: var(--z-tooltip);
+  box-shadow: var(--shadow-lg);
+  white-space: nowrap;
+  transform: translate(-50%, -100%);
+  margin-top: -8px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.chart-tooltip.is-visible {
+  opacity: 1;
+}
+
+.chart-tooltip__label {
+  color: var(--text-tertiary);
+  font-size: 10px;
+  margin-bottom: 2px;
+}
+
+.chart-tooltip__value {
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Donut chart center label */
+.donut-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.donut-center__value {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.donut-center__label {
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+/* Heatmap */
+.heatmap {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  padding: var(--space-2);
+}
+
+.heatmap__cell {
+  aspect-ratio: 1;
+  border-radius: var(--radius-xs);
+  background: var(--bg-elevated);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  position: relative;
+}
+
+.heatmap__cell:hover {
+  transform: scale(1.15);
+  z-index: 1;
+}
+
+.heatmap__cell[data-level="0"] { background: var(--bg-elevated); }
+.heatmap__cell[data-level="1"] { background: rgba(139, 92, 246, 0.2); }
+.heatmap__cell[data-level="2"] { background: rgba(139, 92, 246, 0.4); }
+.heatmap__cell[data-level="3"] { background: rgba(139, 92, 246, 0.7); }
+.heatmap__cell[data-level="4"] { background: var(--accent); }

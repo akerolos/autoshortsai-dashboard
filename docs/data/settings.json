@@ -1,0 +1,277 @@
+{
+  "groups": [
+    {
+      "category": "channels",
+      "settings": [
+        {
+          "id": 12,
+          "key": "active_channel_id",
+          "value": "default",
+          "value_type": "string",
+          "category": "channels",
+          "description": "Currently active channel identifier",
+          "created_at": "2026-07-14T20:52:33.956457",
+          "updated_at": "2026-07-14T20:52:33.956458"
+        }
+      ]
+    },
+    {
+      "category": "narrator",
+      "settings": [
+        {
+          "id": 2,
+          "key": "narrator_voice",
+          "value": "ar-MA-Jawad",
+          "value_type": "string",
+          "category": "narrator",
+          "description": "Voice model used for narration",
+          "created_at": "2026-07-14T20:52:33.956437",
+          "updated_at": "2026-07-14T20:52:33.956438"
+        },
+        {
+          "id": 3,
+          "key": "speech_rate",
+          "value": "1.0",
+          "value_type": "float",
+          "category": "narrator",
+          "description": "Speech playback rate multiplier",
+          "created_at": "2026-07-14T20:52:33.956439",
+          "updated_at": "2026-07-14T20:52:33.956440"
+        }
+      ]
+    },
+    {
+      "category": "production",
+      "settings": [
+        {
+          "id": 4,
+          "key": "category",
+          "value": "technology",
+          "value_type": "string",
+          "category": "production",
+          "description": "Content category for video generation",
+          "created_at": "2026-07-14T20:52:33.956441",
+          "updated_at": "2026-07-14T20:52:33.956442"
+        },
+        {
+          "id": 5,
+          "key": "prompt_version",
+          "value": "v2.1",
+          "value_type": "string",
+          "category": "production",
+          "description": "Version of the prompt template in use",
+          "created_at": "2026-07-14T20:52:33.956443",
+          "updated_at": "2026-07-14T20:52:33.956444"
+        },
+        {
+          "id": 1,
+          "key": "videos_per_day",
+          "value": "5",
+          "value_type": "int",
+          "category": "production",
+          "description": "Number of videos to generate per day",
+          "created_at": "2026-07-14T20:52:33.956429",
+          "updated_at": "2026-07-14T20:52:33.956435"
+        }
+      ]
+    },
+    {
+      "category": "render",
+      "settings": [
+        {
+          "id": 7,
+          "key": "output_resolution",
+          "value": "1080x1920",
+          "value_type": "string",
+          "category": "render",
+          "description": "Output video resolution (width x height)",
+          "created_at": "2026-07-14T20:52:33.956447",
+          "updated_at": "2026-07-14T20:52:33.956448"
+        },
+        {
+          "id": 9,
+          "key": "subtitle_style",
+          "value": "modern-bold",
+          "value_type": "string",
+          "category": "render",
+          "description": "Subtitle visual style preset",
+          "created_at": "2026-07-14T20:52:33.956452",
+          "updated_at": "2026-07-14T20:52:33.956453"
+        },
+        {
+          "id": 8,
+          "key": "video_duration_seconds",
+          "value": "60",
+          "value_type": "int",
+          "category": "render",
+          "description": "Target video duration in seconds",
+          "created_at": "2026-07-14T20:52:33.956450",
+          "updated_at": "2026-07-14T20:52:33.956451"
+        }
+      ]
+    },
+    {
+      "category": "ui",
+      "settings": [
+        {
+          "id": 11,
+          "key": "language",
+          "value": "ar",
+          "value_type": "string",
+          "category": "ui",
+          "description": "Dashboard interface language",
+          "created_at": "2026-07-14T20:52:33.956455",
+          "updated_at": "2026-07-14T20:52:33.956456"
+        },
+        {
+          "id": 10,
+          "key": "theme",
+          "value": "dark",
+          "value_type": "string",
+          "category": "ui",
+          "description": "Dashboard theme (dark | light)",
+          "created_at": "2026-07-14T20:52:33.956454",
+          "updated_at": "2026-07-14T20:52:33.956455"
+        }
+      ]
+    },
+    {
+      "category": "upload",
+      "settings": [
+        {
+          "id": 6,
+          "key": "upload_time",
+          "value": "18:00",
+          "value_type": "string",
+          "category": "upload",
+          "description": "Scheduled upload time (HH:MM, 24h format)",
+          "created_at": "2026-07-14T20:52:33.956445",
+          "updated_at": "2026-07-14T20:52:33.956446"
+        }
+      ]
+    }
+  ],
+  "all": [
+    {
+      "id": 12,
+      "key": "active_channel_id",
+      "value": "default",
+      "value_type": "string",
+      "category": "channels",
+      "description": "Currently active channel identifier",
+      "created_at": "2026-07-14T20:52:33.956457",
+      "updated_at": "2026-07-14T20:52:33.956458"
+    },
+    {
+      "id": 2,
+      "key": "narrator_voice",
+      "value": "ar-MA-Jawad",
+      "value_type": "string",
+      "category": "narrator",
+      "description": "Voice model used for narration",
+      "created_at": "2026-07-14T20:52:33.956437",
+      "updated_at": "2026-07-14T20:52:33.956438"
+    },
+    {
+      "id": 3,
+      "key": "speech_rate",
+      "value": "1.0",
+      "value_type": "float",
+      "category": "narrator",
+      "description": "Speech playback rate multiplier",
+      "created_at": "2026-07-14T20:52:33.956439",
+      "updated_at": "2026-07-14T20:52:33.956440"
+    },
+    {
+      "id": 4,
+      "key": "category",
+      "value": "technology",
+      "value_type": "string",
+      "category": "production",
+      "description": "Content category for video generation",
+      "created_at": "2026-07-14T20:52:33.956441",
+      "updated_at": "2026-07-14T20:52:33.956442"
+    },
+    {
+      "id": 5,
+      "key": "prompt_version",
+      "value": "v2.1",
+      "value_type": "string",
+      "category": "production",
+      "description": "Version of the prompt template in use",
+      "created_at": "2026-07-14T20:52:33.956443",
+      "updated_at": "2026-07-14T20:52:33.956444"
+    },
+    {
+      "id": 1,
+      "key": "videos_per_day",
+      "value": "5",
+      "value_type": "int",
+      "category": "production",
+      "description": "Number of videos to generate per day",
+      "created_at": "2026-07-14T20:52:33.956429",
+      "updated_at": "2026-07-14T20:52:33.956435"
+    },
+    {
+      "id": 7,
+      "key": "output_resolution",
+      "value": "1080x1920",
+      "value_type": "string",
+      "category": "render",
+      "description": "Output video resolution (width x height)",
+      "created_at": "2026-07-14T20:52:33.956447",
+      "updated_at": "2026-07-14T20:52:33.956448"
+    },
+    {
+      "id": 9,
+      "key": "subtitle_style",
+      "value": "modern-bold",
+      "value_type": "string",
+      "category": "render",
+      "description": "Subtitle visual style preset",
+      "created_at": "2026-07-14T20:52:33.956452",
+      "updated_at": "2026-07-14T20:52:33.956453"
+    },
+    {
+      "id": 8,
+      "key": "video_duration_seconds",
+      "value": "60",
+      "value_type": "int",
+      "category": "render",
+      "description": "Target video duration in seconds",
+      "created_at": "2026-07-14T20:52:33.956450",
+      "updated_at": "2026-07-14T20:52:33.956451"
+    },
+    {
+      "id": 11,
+      "key": "language",
+      "value": "ar",
+      "value_type": "string",
+      "category": "ui",
+      "description": "Dashboard interface language",
+      "created_at": "2026-07-14T20:52:33.956455",
+      "updated_at": "2026-07-14T20:52:33.956456"
+    },
+    {
+      "id": 10,
+      "key": "theme",
+      "value": "dark",
+      "value_type": "string",
+      "category": "ui",
+      "description": "Dashboard theme (dark | light)",
+      "created_at": "2026-07-14T20:52:33.956454",
+      "updated_at": "2026-07-14T20:52:33.956455"
+    },
+    {
+      "id": 6,
+      "key": "upload_time",
+      "value": "18:00",
+      "value_type": "string",
+      "category": "upload",
+      "description": "Scheduled upload time (HH:MM, 24h format)",
+      "created_at": "2026-07-14T20:52:33.956445",
+      "updated_at": "2026-07-14T20:52:33.956446"
+    }
+  ],
+  "generated_at": "2026-07-14T20:52:33.962088"
+}

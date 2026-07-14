@@ -1,0 +1,288 @@
+{
+  "today_run": null,
+  "pipeline_overview": {
+    "today_run": null,
+    "recent_runs": [],
+    "last_7_days_count": 0,
+    "success_rate": 0
+  },
+  "today_videos": [],
+  "stats": [
+    {
+      "label": "Total Videos",
+      "value": 0,
+      "icon": "film",
+      "color": "#8B5CF6",
+      "raw_value": 0
+    },
+    {
+      "label": "Today's Videos",
+      "value": 0,
+      "icon": "calendar",
+      "color": "#3B82F6",
+      "raw_value": 0
+    },
+    {
+      "label": "Total Views",
+      "value": 0,
+      "icon": "eye",
+      "color": "#10B981",
+      "raw_value": 0
+    },
+    {
+      "label": "Avg CTR",
+      "value": "0.0%",
+      "icon": "mouse-pointer",
+      "color": "#F59E0B",
+      "raw_value": 0,
+      "unit": "%"
+    },
+    {
+      "label": "Avg Retention",
+      "value": "0.0%",
+      "icon": "clock",
+      "color": "#06B6D4",
+      "raw_value": 0,
+      "unit": "%"
+    },
+    {
+      "label": "Upload Success",
+      "value": "0.0%",
+      "icon": "check-circle",
+      "color": "#10B981",
+      "raw_value": 0,
+      "unit": "%"
+    }
+  ],
+  "charts": [
+    {
+      "id": "dashboard_views",
+      "title": "Views (Last 14 Days)",
+      "type": "line",
+      "series": [
+        {
+          "name": "Views",
+          "color": "#3B82F6",
+          "points": [
+            {
+              "date": "2026-06-30",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-01",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-02",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-03",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-04",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-05",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-06",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-07",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-08",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-09",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-10",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-11",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-12",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-13",
+              "value": 0.0
+            }
+          ]
+        }
+      ],
+      "x_labels": [
+        "2026-06-30",
+        "2026-07-01",
+        "2026-07-02",
+        "2026-07-03",
+        "2026-07-04",
+        "2026-07-05",
+        "2026-07-06",
+        "2026-07-07",
+        "2026-07-08",
+        "2026-07-09",
+        "2026-07-10",
+        "2026-07-11",
+        "2026-07-12",
+        "2026-07-13"
+      ]
+    },
+    {
+      "id": "dashboard_ctr",
+      "title": "Ctr (Last 14 Days)",
+      "type": "bar",
+      "series": [
+        {
+          "name": "Ctr",
+          "color": "#10B981",
+          "points": [
+            {
+              "date": "2026-06-30",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-01",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-02",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-03",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-04",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-05",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-06",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-07",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-08",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-09",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-10",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-11",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-12",
+              "value": 0.0
+            },
+            {
+              "date": "2026-07-13",
+              "value": 0.0
+            }
+          ]
+        }
+      ],
+      "x_labels": [
+        "2026-06-30",
+        "2026-07-01",
+        "2026-07-02",
+        "2026-07-03",
+        "2026-07-04",
+        "2026-07-05",
+        "2026-07-06",
+        "2026-07-07",
+        "2026-07-08",
+        "2026-07-09",
+        "2026-07-10",
+        "2026-07-11",
+        "2026-07-12",
+        "2026-07-13"
+      ]
+    }
+  ],
+  "pipeline_stages": [
+    {
+      "key": "content_engine",
+      "name": "Content Engine",
+      "icon": "file-text",
+      "status": "waiting",
+      "color": "#F59E0B"
+    },
+    {
+      "key": "image_engine",
+      "name": "Image Engine",
+      "icon": "image",
+      "status": "waiting",
+      "color": "#F59E0B"
+    },
+    {
+      "key": "narrator",
+      "name": "Narrator",
+      "icon": "mic",
+      "status": "waiting",
+      "color": "#F59E0B"
+    },
+    {
+      "key": "whisper",
+      "name": "Whisper",
+      "icon": "waveform",
+      "status": "waiting",
+      "color": "#F59E0B"
+    },
+    {
+      "key": "timeline",
+      "name": "Timeline",
+      "icon": "layers",
+      "status": "waiting",
+      "color": "#F59E0B"
+    },
+    {
+      "key": "render",
+      "name": "Render",
+      "icon": "film",
+      "status": "waiting",
+      "color": "#F59E0B"
+    },
+    {
+      "key": "quality_check",
+      "name": "Quality Check",
+      "icon": "check-circle",
+      "status": "waiting",
+      "color": "#F59E0B"
+    },
+    {
+      "key": "upload",
+      "name": "Upload",
+      "icon": "upload",
+      "status": "waiting",
+      "color": "#F59E0B"
+    }
+  ],
+  "generated_at": "2026-07-14T20:52:33.958108"
+}
