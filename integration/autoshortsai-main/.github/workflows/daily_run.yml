@@ -1,0 +1,104 @@
+name: AutoShortsAI Daily Run
+
+on:
+  workflow_dispatch: # يشغل فقط عندما يطلبه Cloudflare
+  # تم حذف الـ schedule من هنا
+
+permissions:
+  contents: write
+
+
+concurrency:
+  group: autoshorts-daily-run
+  cancel-in-progress: false
+
+jobs:
+  generate-and-upload:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Cache Pip Packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Cache HuggingFace Model
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-MiniLM
+
+    - name: Install FFmpeg & Fonts
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ffmpeg fonts-dejavu-core
+
+    - name: Install Python Dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt
+        # [DASHBOARD INTEGRATION] تثبيت requests لو مش موجود
+        pip install requests
+
+    - name: Create .env file
+      run: |
+        echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
+        echo "PEXELS_API_KEY=${{ secrets.PEXELS_API_KEY }}" >> .env
+
+    - name: Create token.json from Secret
+      run: echo '${{ secrets.YOUTUBE_TOKEN_JSON }}' > token.json
+
+    - name: Create client_secrets.json from Secret
+      run: echo '${{ secrets.CLIENT_SECRETS_JSON }}' > client_secrets.json
+
+    - name: Run AutoShortsAI
+      # [DASHBOARD INTEGRATION] تمرير متغيرات البيئة للـ reporter
+      env:
+        DASHBOARD_URL: ${{ secrets.DASHBOARD_URL }}
+        DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
+        GITHUB_RUN_ID: ${{ github.run_id }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        GITHUB_SHA: ${{ github.sha }}
+      run: python main.py
+
+    - name: Save Database to GitHub
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add videos.db
+        git commit -m "Update banned ideas & brain memory database [skip ci]" || echo "No changes to commit"
+        git push
+
+    # [DASHBOARD INTEGRATION] ملاحظة:
+    # إرسال التقرير بيحصل تلقائياً داخل main.py في الـ finally block
+    # لو حابب تبعت تقرير إضافي (مثلاً فشل الـ run كله قبل ما main.py يشتغل):
+    - name: Notify Dashboard on Failure
+      if: failure()
+      env:
+        DASHBOARD_URL: ${{ secrets.DASHBOARD_URL }}
+        DASHBOARD_API_KEY: ${{ secrets.DASHBOARD_API_KEY }}
+        GITHUB_RUN_ID: ${{ github.run_id }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        GITHUB_SHA: ${{ github.sha }}
+      run: |
+        python -c "
+        from dashboard import get_reporter
+        reporter = get_reporter()
+        reporter.report['status'] = 'failed'
+        from datetime import datetime, timezone
+        reporter.report['finished_at'] = datetime.now(timezone.utc).isoformat()
+        reporter.report['error_message'] = 'GitHub Action failed before main.py could complete'
+        reporter.add_log('ERROR', 'github_actions', 'Workflow failed at step: Run AutoShortsAI')
+        reporter.send()
+        "

@@ -1,0 +1,15 @@
+/* ============================================
+   AutoShortsAI Dashboard — Main CSS
+   Aggregator: import all stylesheets in order
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@import 'tokens.css';
+@import 'reset.css';
+@import 'base.css';
+@import 'layout.css';
+@import 'components.css';
+@import 'charts.css';
+@import 'animations.css';
+@import 'pages.css';

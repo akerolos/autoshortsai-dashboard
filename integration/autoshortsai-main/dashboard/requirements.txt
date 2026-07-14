@@ -1,0 +1,4 @@
+# === Dashboard Integration Requirements ===
+# أضف ده لـ requirements.txt بتاع AutoShortsAI (لو مش موجود)
+
+requests>=2.28.0
